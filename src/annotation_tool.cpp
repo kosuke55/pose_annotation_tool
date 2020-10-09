@@ -81,7 +81,6 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   connect(add_marker_button, SIGNAL(released()), this, SLOT(addMarker()));
   connect(remove_marker_button, SIGNAL(released()), this, SLOT(removeMarker()));
   connect(save_annotation_button, SIGNAL(released()), this, SLOT(saveAnnotation()));
-  connect(switch_marker_button, SIGNAL(released()), this, SLOT(switch_marker()));
   connect(move_to_frame_button, SIGNAL(released()), this, SLOT(moveToFrame()));
   connect(load_annotation_button, SIGNAL(released()), this, SLOT(loadAnnotation()));
 
@@ -96,7 +95,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   pre_marker_y = 0;
   pre_marker_z = 0;
   marker_mesh_resource = "package://annotation_tool/axis.stl";
-  marker_scale = 0.01;
+  marker_scale = 1;
 }
 
 // Destructor.
