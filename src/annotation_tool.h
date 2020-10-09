@@ -24,8 +24,10 @@
 #include <ros/package.h>
 #include <pcl_ros/point_cloud.h>
 #include <pcl_ros/transforms.h>
+#include <pcl/io/obj_io.h>
 #include <pcl/io/ply_io.h>
 #include <fstream>
+
 
 #define HSR 0
 
@@ -74,11 +76,14 @@ private:
 
   //parameters
   pcl::PointCloud<PCType>::Ptr current_cloud;
-  int device;
   int num_marker;
   float pre_marker_x;
   float pre_marker_y;
   float pre_marker_z;
+  float pre_marker_qx;
+  float pre_marker_qy;
+  float pre_marker_qz;
+  float pre_marker_qw;
   int num_annotated_cloud;
   float marker_scale;
 
