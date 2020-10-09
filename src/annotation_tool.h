@@ -63,7 +63,6 @@ private Q_SLOTS:
   void addMarker();
   void removeMarker();
   void saveAnnotation();
-  void switch_marker();
   void moveToFrame();
   void loadAnnotation();
 

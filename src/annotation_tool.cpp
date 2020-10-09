@@ -26,7 +26,6 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   QPushButton *load_annotation_button = new QPushButton("load annotation for checking", this);
   QPushButton *save_annotation_button = new QPushButton("save label and move to next frame", this);
   QPushButton *load_point_cloud_button = new QPushButton("load point cloud directory", this);
-  QPushButton *switch_marker_button = new QPushButton("switch marker", this);
   QPushButton *move_to_frame_button = new QPushButton("move to frame", this);
 
   move_to_frame = new QLineEdit;
@@ -41,7 +40,6 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   HRV_layout->addWidget(remove_marker_button);
   HRV_layout->addWidget(save_annotation_button);
   HRV_layout->addWidget(load_annotation_button);
-  HRV_layout->addWidget(switch_marker_button);
   HRV_layout->addLayout(subG_layout);
   HR_widget->setLayout(HRV_layout);
 
@@ -97,10 +95,8 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   pre_marker_x = 0;
   pre_marker_y = 0;
   pre_marker_z = 0;
-  current_marker_type = "gripper";
-  // marker_mesh_resource = "package://annotation_tool/gripper.dae";
   marker_mesh_resource = "package://annotation_tool/axis.stl";
-  marker_scale = 1.0;
+  marker_scale = 0.01;
 }
 
 // Destructor.
@@ -323,22 +319,6 @@ void AnnotationTool::saveAnnotation()
   removeMarker();
 }
 
-void AnnotationTool::switch_marker()
-{
-  if (current_marker_type == "arrow")
-  {
-    // marker_mesh_resource = "package://annotation_tool/gripper.dae";
-    marker_mesh_resource = "package://annotation_tool/axis.stl";
-    current_marker_type = "gripper";
-    marker_scale = 0.1;
-  }
-  else
-  {
-    marker_mesh_resource = "package://annotation_tool/arrow.dae";
-    current_marker_type = "arrow";
-    marker_scale = 0.01;
-  }
-}
 
 void AnnotationTool::moveToFrame()
 {
