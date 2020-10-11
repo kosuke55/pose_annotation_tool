@@ -393,9 +393,6 @@ void AnnotationTool::loadAnnotation()
     counter++;
   }
 
-  // visualization_msgs::MarkerArray marker_array;
-  // std::vector<visualization_msgs::Marker> vMarker;
-
   for (int i = 0; i < counter; i++)
   {
     tf::Vector3 position = tf::Vector3(pose[i][0], pose[i][1], pose[i][2]);
@@ -452,33 +449,5 @@ void AnnotationTool::loadAnnotation()
     server->insert(int_marker);
     server->setCallback(int_marker.name, boost::bind(&AnnotationTool::markerFeedback, this, _1));
     server->applyChanges();
-    // visualization_msgs::Marker marker;
-    // marker.header.frame_id = "annotation";
-    // marker.header.stamp = ros::Time::now();
-    // marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-    // marker.mesh_resource = marker_mesh_resource;
-    // marker.mesh_use_embedded_materials = true;
-    // marker.action = visualization_msgs::Marker::ADD;
-    // marker.id = num_marker + i;
-    // marker.pose.position.x = pose[i][0];
-    // marker.pose.position.y = pose[i][1];
-    // marker.pose.position.z = pose[i][2];
-    // marker.pose.orientation.w = pose[i][3];
-    // marker.pose.orientation.x = pose[i][4];
-    // marker.pose.orientation.y = pose[i][5];
-    // marker.pose.orientation.z = pose[i][6];
-
-    // marker.scale.x = 0.1 * marker_scale;
-    // marker.scale.y = 0.1 * marker_scale;
-    // marker.scale.z = 0.1 * marker_scale;
-
-    // marker.color.r = 0.0f;
-    // marker.color.g = 1.0f;
-    // marker.color.b = 0.0f;
-    // marker.color.a = 1.0;
-    // vMarker.push_back(marker);
   }
-  // num_marker = num_marker + counter;
-  // marker_array.markers = vMarker;
-  // marker_pub.publish(marker_array);
 }
