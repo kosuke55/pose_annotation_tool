@@ -8,6 +8,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QLineEdit>
+#include <QInputDialog>
 
 #include <boost/filesystem.hpp>
 #include <interactive_markers/interactive_marker_server.h>
@@ -67,12 +68,14 @@ private Q_SLOTS:
   void saveAnnotation();
   void moveToFrame();
   void loadAnnotation();
+  void setLabel();
 
 private:
   rviz::VisualizationManager *manager_;
   rviz::RenderPanel *render_panel_;
 
   QLineEdit *move_to_frame;
+  QLineEdit *set_label;
 
   //parameters
   pcl::PointCloud<PCType>::Ptr current_cloud;
@@ -85,6 +88,7 @@ private:
   float pre_marker_qz;
   float pre_marker_qw;
   int num_annotated_cloud;
+  int pose_label;
   float marker_scale;
 
   std::string marker_mesh_resource;

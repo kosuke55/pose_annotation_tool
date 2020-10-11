@@ -25,19 +25,27 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   QPushButton *save_annotation_button = new QPushButton("save label and move to next frame", this);
   QPushButton *load_point_cloud_button = new QPushButton("load point cloud directory", this);
   QPushButton *move_to_frame_button = new QPushButton("move to frame", this);
+  QPushButton *set_label_button = new QPushButton("set label", this);
 
   move_to_frame = new QLineEdit;
   QLabel *frame_num_label = new QLabel("frame No. : ");
+  set_label = new QLineEdit;
+  QLabel *pose_qlabel = new QLabel("label : ");
 
-  subG_layout->addWidget(frame_num_label, 0, 0);
-  subG_layout->addWidget(move_to_frame, 0, 1);
-  subG_layout->addWidget(move_to_frame_button, 0, 2);
+  subG_layout->addWidget(pose_qlabel, 0, 0);
+  subG_layout->addWidget(set_label, 0, 1);
+  subG_layout->addWidget(set_label_button, 0, 2);
+
+  subG_layout->addWidget(frame_num_label, 1, 0);
+  subG_layout->addWidget(move_to_frame, 1, 1);
+  subG_layout->addWidget(move_to_frame_button, 1, 2);
 
   HRV_layout->addWidget(load_point_cloud_button);
   HRV_layout->addWidget(add_marker_button);
   HRV_layout->addWidget(remove_marker_button);
   HRV_layout->addWidget(save_annotation_button);
   HRV_layout->addWidget(load_annotation_button);
+  // HRV_layout->addWidget(set_label_button);
   HRV_layout->addLayout(subG_layout);
   HR_widget->setLayout(HRV_layout);
 
@@ -81,6 +89,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   connect(save_annotation_button, SIGNAL(released()), this, SLOT(saveAnnotation()));
   connect(move_to_frame_button, SIGNAL(released()), this, SLOT(moveToFrame()));
   connect(load_annotation_button, SIGNAL(released()), this, SLOT(loadAnnotation()));
+  connect(set_label_button, SIGNAL(released()), this, SLOT(setLabel()));
 
   //ros stuff
   server.reset(new interactive_markers::InteractiveMarkerServer("Annotation_tool", "", false));
@@ -89,6 +98,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
 
   //init
   num_marker = 0;
+  pose_label = 0;
   pre_marker_x = 0;
   pre_marker_y = 0;
   pre_marker_z = 0;
@@ -109,9 +119,13 @@ AnnotationTool::~AnnotationTool()
 void AnnotationTool::addMarker()
 {
 
-  std::ostringstream num_to_string;
-  num_to_string << num_marker;
-  std::string marker_name = num_to_string.str();
+  std::ostringstream nummarker_to_string;
+  nummarker_to_string << num_marker;
+  std::string marker_name = nummarker_to_string.str();
+  std::ostringstream pose_label_to_string;
+  pose_label_to_string << pose_label;
+  std::string pose_label_str = pose_label_to_string.str();
+  marker_name += "_" + pose_label_str;
 
   make6DofMarker(marker_name, visualization_msgs::InteractiveMarkerControl::MOVE_3D, true);
 
@@ -230,7 +244,7 @@ void AnnotationTool::removeMarker()
 
 void AnnotationTool::markerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-  int num = std::atoi((feedback->marker_name).c_str());
+  int num = num_marker - 1;
   label[num][0] = feedback->pose.position.x;
   label[num][1] = feedback->pose.position.y;
   label[num][2] = feedback->pose.position.z;
@@ -238,7 +252,7 @@ void AnnotationTool::markerFeedback(const visualization_msgs::InteractiveMarkerF
   label[num][4] = feedback->pose.orientation.x;
   label[num][5] = feedback->pose.orientation.y;
   label[num][6] = feedback->pose.orientation.z;
-  label[num][7] = num;
+  label[num][7] = pose_label;
 
   pre_marker_x = label[num][0];
   pre_marker_y = label[num][1];
@@ -313,8 +327,8 @@ void AnnotationTool::saveAnnotation()
   file.open(txt_path.c_str());
   for (int i = 0; i < label.size(); i++)
   {
-    std::cout << "label:" << i << " x: " << label[i][0] << " y: " << label[i][1] << " z: " << label[i][2] << " w: " << label[i][3] << " x: " << label[i][4] << " y: " << label[i][5] << " z: " << label[i][6] << std::endl;
-    file << label[i][0] << " " << label[i][1] << " " << label[i][2] << " " << label[i][3] << " " << label[i][4] << " " << label[i][5] << " " << label[i][6] << std::endl;
+    std::cout << "label:" << label[i][7] << " x: " << label[i][0] << " y: " << label[i][1] << " z: " << label[i][2] << " w: " << label[i][3] << " x: " << label[i][4] << " y: " << label[i][5] << " z: " << label[i][6] << std::endl;
+    file << label[i][7] << " " << label[i][0] << " " << label[i][1] << " " << label[i][2] << " " << label[i][3] << " " << label[i][4] << " " << label[i][5] << " " << label[i][6] << std::endl;
   }
   file.close();
   num_annotated_cloud += 1;
@@ -327,6 +341,12 @@ void AnnotationTool::moveToFrame()
   if (!move_to_frame->text().isEmpty())
     num_annotated_cloud = move_to_frame->text().toInt();
   loadPointCloud();
+}
+
+void AnnotationTool::setLabel()
+{
+  if (!set_label->text().isEmpty())
+    pose_label = set_label->text().toInt();
 }
 
 void AnnotationTool::loadAnnotation()
