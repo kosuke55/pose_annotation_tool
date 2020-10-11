@@ -29,9 +29,6 @@
 #include <pcl/io/ply_io.h>
 #include <fstream>
 
-
-#define HSR 0
-
 #define COLOR true; //true for colored point cloud
 #ifdef COLOR
 typedef pcl::PointXYZRGB PCType;
@@ -69,6 +66,7 @@ private Q_SLOTS:
   void moveToFrame();
   void loadAnnotation();
   void setLabel();
+  void splitName(std::string, std::string, std::string &, std::string &);
 
 private:
   rviz::VisualizationManager *manager_;

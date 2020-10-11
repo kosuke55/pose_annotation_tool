@@ -132,7 +132,7 @@ void AnnotationTool::addMarker()
   server->applyChanges();
   num_marker++;
   float pos[] = {pre_marker_x, pre_marker_y, pre_marker_z,
-                 pre_marker_qx, pre_marker_qy, pre_marker_qz, pre_marker_qw};
+                 pre_marker_qw, pre_marker_qx, pre_marker_qy, pre_marker_qz, pose_label};
   label.push_back(std::vector<float>(pos, pos + sizeof(pos) / sizeof(float)));
 }
 
@@ -242,9 +242,20 @@ void AnnotationTool::removeMarker()
   }
 }
 
+void AnnotationTool::splitName(std::string s, std::string delimiter, std::string &first, std::string &second)
+{
+  size_t pos = s.find(delimiter);
+  first = s.substr(0, pos);
+  second = s.substr(pos + delimiter.length(), s.length());
+}
+
 void AnnotationTool::markerFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback)
 {
-  int num = num_marker - 1;
+  // int num = num_marker - 1;
+  std::string num_string, pose_label_string;
+  splitName(feedback->marker_name, "_", num_string, pose_label_string);
+  int num = std::atoi(num_string.c_str());
+
   label[num][0] = feedback->pose.position.x;
   label[num][1] = feedback->pose.position.y;
   label[num][2] = feedback->pose.position.z;
@@ -252,15 +263,15 @@ void AnnotationTool::markerFeedback(const visualization_msgs::InteractiveMarkerF
   label[num][4] = feedback->pose.orientation.x;
   label[num][5] = feedback->pose.orientation.y;
   label[num][6] = feedback->pose.orientation.z;
-  label[num][7] = pose_label;
+  label[num][7] = std::atoi(pose_label_string.c_str());
 
   pre_marker_x = label[num][0];
   pre_marker_y = label[num][1];
   pre_marker_z = label[num][2] + 0.01;
-  pre_marker_qw = label[num][3];
   pre_marker_qx = label[num][4];
   pre_marker_qy = label[num][5];
   pre_marker_qz = label[num][6];
+  pre_marker_qw = label[num][3];
 }
 
 void AnnotationTool::PublishPointCloud(pcl::PointCloud<PCType>::Ptr cloud)
@@ -361,50 +372,113 @@ void AnnotationTool::loadAnnotation()
   int counter = 0;
   file.open(file_path.c_str(), std::ios_base::in);
   std::string line;
+  std::vector<int> pose_labels;
   while (std::getline(file, line))
   {
     std::stringstream ss(line);
     std::vector<float> element;
+    bool is_label = true;
     while (getline(ss, line, ' '))
     {
+      if (is_label)
+      {
+        pose_labels.push_back(std::atoi(line.c_str()));
+        is_label = false;
+        continue;
+      }
       element.push_back(std::atof(line.c_str()));
     }
-    pose.push_back(element);
+    pose.push_back(element); // x y z qw qx qy qz
+
     counter++;
   }
 
-  visualization_msgs::MarkerArray marker_array;
-  std::vector<visualization_msgs::Marker> vMarker;
+  // visualization_msgs::MarkerArray marker_array;
+  // std::vector<visualization_msgs::Marker> vMarker;
 
   for (int i = 0; i < counter; i++)
   {
-    visualization_msgs::Marker marker;
-    marker.header.frame_id = "annotation";
-    marker.header.stamp = ros::Time::now();
-    marker.type = visualization_msgs::Marker::MESH_RESOURCE;
-    marker.mesh_resource = marker_mesh_resource;
-    marker.mesh_use_embedded_materials = true;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.id = num_marker + i;
-    marker.pose.position.x = pose[i][0];
-    marker.pose.position.y = pose[i][1];
-    marker.pose.position.z = pose[i][2];
-    marker.pose.orientation.w = pose[i][3];
-    marker.pose.orientation.x = pose[i][4];
-    marker.pose.orientation.y = pose[i][5];
-    marker.pose.orientation.z = pose[i][6];
+    tf::Vector3 position = tf::Vector3(pose[i][0], pose[i][1], pose[i][2]);
+    tf::Quaternion quaternion = tf::Quaternion(pose[i][4], pose[i][5], pose[i][6], pose[i][3]);
+    float pos[] = {pose[i][0], pose[i][1], pose[i][2],
+                   pose[i][3], pose[i][4], pose[i][5], pose[i][6], float(pose_labels[i])};
+    label.push_back(std::vector<float>(pos, pos + sizeof(pos) / sizeof(float)));
+    visualization_msgs::InteractiveMarker int_marker;
+    int_marker.header.frame_id = "annotation";
+    tf::pointTFToMsg(position, int_marker.pose.position);
+    tf::quaternionTFToMsg(quaternion, int_marker.pose.orientation);
 
-    marker.scale.x = 0.1 * marker_scale;
-    marker.scale.y = 0.1 * marker_scale;
-    marker.scale.z = 0.1 * marker_scale;
+    int_marker.scale = 0.05; //adjust this to adjust the control box's size
+    int_marker.name = std::to_string(num_marker) + "_" + std::to_string(pose_labels[i]);
+    int_marker.description = std::to_string(num_marker) + "_" + std::to_string(pose_labels[i]);
+    num_marker++;
+    makeBoxControl(int_marker);
+    int_marker.controls[0].interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_3D;
+    visualization_msgs::InteractiveMarkerControl control;
 
-    marker.color.r = 0.0f;
-    marker.color.g = 1.0f;
-    marker.color.b = 0.0f;
-    marker.color.a = 1.0;
-    vMarker.push_back(marker);
+    control.orientation.w = 1.0;
+    control.orientation.x = 1.0;
+    control.orientation.y = 0.0;
+    control.orientation.z = 0.0;
+    control.name = "rotate_x";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+    int_marker.controls.push_back(control);
+    control.name = "move_x";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+    int_marker.controls.push_back(control);
+
+    control.orientation.w = 1;
+    control.orientation.x = 0;
+    control.orientation.y = 1;
+    control.orientation.z = 0;
+    control.name = "rotate_z";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+    int_marker.controls.push_back(control);
+    control.name = "move_z";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+    int_marker.controls.push_back(control);
+
+    control.orientation.w = 1;
+    control.orientation.x = 0;
+    control.orientation.y = 0;
+    control.orientation.z = 1;
+    control.name = "rotate_y";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::ROTATE_AXIS;
+    int_marker.controls.push_back(control);
+    control.name = "move_y";
+    control.interaction_mode = visualization_msgs::InteractiveMarkerControl::MOVE_AXIS;
+    int_marker.controls.push_back(control);
+
+    server->insert(int_marker);
+    server->setCallback(int_marker.name, boost::bind(&AnnotationTool::markerFeedback, this, _1));
+    server->applyChanges();
+    // visualization_msgs::Marker marker;
+    // marker.header.frame_id = "annotation";
+    // marker.header.stamp = ros::Time::now();
+    // marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+    // marker.mesh_resource = marker_mesh_resource;
+    // marker.mesh_use_embedded_materials = true;
+    // marker.action = visualization_msgs::Marker::ADD;
+    // marker.id = num_marker + i;
+    // marker.pose.position.x = pose[i][0];
+    // marker.pose.position.y = pose[i][1];
+    // marker.pose.position.z = pose[i][2];
+    // marker.pose.orientation.w = pose[i][3];
+    // marker.pose.orientation.x = pose[i][4];
+    // marker.pose.orientation.y = pose[i][5];
+    // marker.pose.orientation.z = pose[i][6];
+
+    // marker.scale.x = 0.1 * marker_scale;
+    // marker.scale.y = 0.1 * marker_scale;
+    // marker.scale.z = 0.1 * marker_scale;
+
+    // marker.color.r = 0.0f;
+    // marker.color.g = 1.0f;
+    // marker.color.b = 0.0f;
+    // marker.color.a = 1.0;
+    // vMarker.push_back(marker);
   }
-  num_marker = num_marker + counter;
-  marker_array.markers = vMarker;
-  marker_pub.publish(marker_array);
+  // num_marker = num_marker + counter;
+  // marker_array.markers = vMarker;
+  // marker_pub.publish(marker_array);
 }
