@@ -45,7 +45,6 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   HRV_layout->addWidget(remove_marker_button);
   HRV_layout->addWidget(save_annotation_button);
   HRV_layout->addWidget(load_annotation_button);
-  // HRV_layout->addWidget(set_label_button);
   HRV_layout->addLayout(subG_layout);
   HR_widget->setLayout(HRV_layout);
 
