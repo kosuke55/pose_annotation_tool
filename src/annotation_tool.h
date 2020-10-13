@@ -77,6 +77,7 @@ private:
 
   //parameters
   pcl::PointCloud<PCType>::Ptr current_cloud;
+  // visualization_msgs::marker *current_mesh;
   int num_marker;
   float pre_marker_x;
   float pre_marker_y;
@@ -92,13 +93,14 @@ private:
   std::string marker_mesh_resource;
   std::string current_marker_type;
   std::string base_dir;
-  std::vector<std::string> pointcloud_files;
+  std::vector<std::string> files;
 
   ros::NodeHandle nh_;
   boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server;
   std::vector<std::vector<float>> label;
   ros::Publisher marker_pub;
   ros::Publisher pointcloud_dataset_pub;
+  ros::Publisher mesh_pub;
   ros::Subscriber pointcloud_dataset_sub;
 };
 

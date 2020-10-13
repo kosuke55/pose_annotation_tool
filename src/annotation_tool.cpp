@@ -21,7 +21,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   QVBoxLayout *HRV_layout = new QVBoxLayout;
   QPushButton *add_marker_button = new QPushButton("add marker", this);
   QPushButton *remove_marker_button = new QPushButton("remove marker", this);
-  QPushButton *load_annotation_button = new QPushButton("load annotation for checking", this);
+  QPushButton *load_annotation_button = new QPushButton("load annotation", this);
   QPushButton *save_annotation_button = new QPushButton("save label and move to next frame", this);
   QPushButton *load_point_cloud_button = new QPushButton("load point cloud directory", this);
   QPushButton *move_to_frame_button = new QPushButton("move to frame", this);
@@ -58,6 +58,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
 
   rviz::Display *interactive_marker = manager_->createDisplay("rviz/InteractiveMarkers", "marker", true);
   rviz::Display *fix_marker = manager_->createDisplay("rviz/MarkerArray", "markerarray", true);
+  rviz::Display *mesh_data = manager_->createDisplay("rviz/Marker", "marker", true);
   rviz::Display *pointcloud_data = manager_->createDisplay("rviz/PointCloud2", "pointcloud", true);
 
   interactive_marker->subProp("Update Topic")->setValue("/Annotation_tool/update");
@@ -71,6 +72,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   tool_manager->setCurrentTool(interact_tool);
 
   fix_marker->subProp("Marker Topic")->setValue("/visualization_marker");
+  mesh_data->subProp("Marker Topic")->setValue("/dataset_mesh");
 
   pointcloud_data->subProp("Topic")->setValue("dataset_points");
   pointcloud_data->subProp("Style")->setValue("Points");
@@ -94,6 +96,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   server.reset(new interactive_markers::InteractiveMarkerServer("Annotation_tool", "", false));
   marker_pub = nh_.advertise<visualization_msgs::MarkerArray>("visualization_marker", 1);
   pointcloud_dataset_pub = nh_.advertise<sensor_msgs::PointCloud2>("dataset_points", 1);
+  mesh_pub = nh_.advertise<visualization_msgs::Marker>("dataset_mesh", 1);
 
   //init
   num_marker = 0;
@@ -281,57 +284,94 @@ void AnnotationTool::PublishPointCloud(pcl::PointCloud<PCType>::Ptr cloud)
   pointcloud_dataset_pub.publish(pc_msg);
 }
 
+
 void AnnotationTool::loadPointCloudDir()
 {
   QString filename = QFileDialog::getExistingDirectory();
   QDir *dir = new QDir(filename);
   QStringList filter;
   QList<QFileInfo> *fileInfo = new QList<QFileInfo>(dir->entryInfoList(filter));
+  visualization_msgs::Marker current_mesh;
   for (int i = 0; i < fileInfo->count(); i++)
   {
     std::string file_path = fileInfo->at(i).filePath().toStdString();
     std::string suffix = file_path.substr(file_path.size() - 3);
-    if (suffix == "ply" || suffix == "pcd")
+    if (suffix == "ply" || suffix == "pcd" || suffix == "obj")
     {
-      pointcloud_files.push_back(file_path);
+      files.push_back(file_path);
     }
   }
-  if (pointcloud_files.size() > 0)
+  if (files.size() > 0)
   {
-    std::string suffix = pointcloud_files[0].substr(pointcloud_files[0].size() - 3);
+    std::string suffix = files[0].substr(files[0].size() - 3);
     if (suffix == "ply")
     {
       pcl::PLYReader Reader;
-      Reader.read(pointcloud_files[0], *current_cloud);
+      Reader.read(files[0], *current_cloud);
+      PublishPointCloud(current_cloud);
     }
     else if (suffix == "pcd")
     {
-      pcl::io::loadPCDFile(pointcloud_files[0], *current_cloud);
+      pcl::io::loadPCDFile(files[0], *current_cloud);
+      PublishPointCloud(current_cloud);
     }
-    PublishPointCloud(current_cloud);
+    else if (suffix == "obj"){
+      current_mesh.header.frame_id = "annotation";
+      current_mesh.header.stamp = ros::Time::now();
+      current_mesh.type = visualization_msgs::Marker::MESH_RESOURCE;
+      current_mesh.mesh_resource = "file://" + files[0];
+      current_mesh.action = visualization_msgs::Marker::ADD;
+      current_mesh.scale.x = 1;
+      current_mesh.scale.y = 1;
+      current_mesh.scale.z = 1;
+      current_mesh.color.a = 0.5;
+      current_mesh.color.r = 0.5;
+      current_mesh.color.g = 0.5;
+      current_mesh.color.b = 0.5;
+      mesh_pub.publish(current_mesh);
+    }
+
     num_annotated_cloud = 0;
   }
 }
 
 void AnnotationTool::loadPointCloud()
 {
-  std::string path = pointcloud_files[num_annotated_cloud];
+  std::string path = files[num_annotated_cloud];
   std::string suffix = path.substr(path.size() - 3);
+  visualization_msgs::Marker current_mesh;
   if (suffix == "ply")
   {
     pcl::PLYReader Reader;
     Reader.read(path, *current_cloud);
+    PublishPointCloud(current_cloud);
   }
   else if (suffix == "pcd")
   {
     pcl::io::loadPCDFile(path, *current_cloud);
+    PublishPointCloud(current_cloud);
   }
-  PublishPointCloud(current_cloud);
+  else if (suffix == "obj")
+  {
+    current_mesh.header.frame_id = "annotation";
+    current_mesh.header.stamp = ros::Time::now();
+    current_mesh.type = visualization_msgs::Marker::MESH_RESOURCE;
+    current_mesh.mesh_resource =  "file://" + path;
+    current_mesh.action = visualization_msgs::Marker::ADD;
+    current_mesh.scale.x = 1;
+    current_mesh.scale.y = 1;
+    current_mesh.scale.z = 1;
+    current_mesh.color.a = 0.5;
+    current_mesh.color.r = 0.5;
+    current_mesh.color.g = 0.5;
+    current_mesh.color.b = 0.5;
+    mesh_pub.publish(current_mesh);
+  }
 }
 
 void AnnotationTool::saveAnnotation()
 {
-  std::string pc_path = pointcloud_files[num_annotated_cloud];
+  std::string pc_path = files[num_annotated_cloud];
   std::string txt_path = pc_path.replace(pc_path.end() - 3, pc_path.end(), "txt");
   std::ofstream file;
   file.open(txt_path.c_str());
@@ -361,9 +401,9 @@ void AnnotationTool::setLabel()
 
 void AnnotationTool::loadAnnotation()
 {
-  if (pointcloud_files.size() == 0)
+  if (files.size() == 0)
     return;
-  std::string pc_path = pointcloud_files[num_annotated_cloud];
+  std::string pc_path = files[num_annotated_cloud];
   std::string file_path = pc_path.replace(pc_path.end() - 3, pc_path.end(), "txt");
   std::ifstream file;
 
