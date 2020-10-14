@@ -23,7 +23,7 @@ for path in paths:
     print(input_file)
 
     contact_points = {'contact_points': [],
-                      'label': [],
+                      'labels': [],
                       'urdf_file': str(path.with_suffix('.urdf'))}
     with open(input_file)as f:
         for line in f.readlines():
@@ -35,7 +35,7 @@ for path in paths:
 
             contact_points['contact_points'].append(
                 np.vstack([pos, matrix]).tolist())
-            contact_points['label'].append(label)
+            contact_points['labels'].append(label)
             print(line)
 
     save_json(str(path.with_suffix('.json')), contact_points)
