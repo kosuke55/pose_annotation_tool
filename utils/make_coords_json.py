@@ -12,12 +12,12 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '--input-dir', '-i', type=str,
     help='input_dir',
-    default='/home/kosuke55/catkin_ws/src/pose_annotation_tool/annotation_obj')
+    # default='/home/kosuke55/catkin_ws/src/pose_annotation_tool/annotation_obj')  # noqa
+    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj')  # noqa
 
 args = parser.parse_args()
 
 paths = list(sorted(Path(args.input_dir).glob('*.txt')))
-# path = paths[0]
 for path in paths:
     input_file = str(path)
     print(input_file)
