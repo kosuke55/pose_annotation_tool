@@ -1,0 +1,45 @@
+import argparse
+import copy
+from pathlib import Path
+
+import numpy as np
+
+from hanging_points_generator.generator_utils import save_json
+from skrobot.coordinates.math import quaternion2matrix
+from skrobot.coordinates import Coordinates
+
+# parser = argparse.ArgumentParser(
+#     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+
+# parser.add_argument(
+#     '--input-dir', '-i', type=str,
+#     help='input_dir',
+#     default='/home/kosuke55/catkin_ws/src/pose_annotation_tool/annotation_obj_1027')
+
+# args = parser.parse_args()
+
+# paths = list(sorted(Path(args.input_dir).glob('*.txt')))
+# path = paths[0]
+# mirror =
+path = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/024_bowl.txt.backup'
+out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/024_bowl.txt'
+
+input_file = str(path)
+print(input_file)
+
+label_list = []
+pos_list = []
+coords_list = []
+with open(input_file)as f:
+    for line in f.readlines():
+        values = [float(v) for v in line.split()]
+        label = int(values[0])
+        pos = values[1:4]
+        quaternion = values[4:]
+        c = Coordinates(pos=pos, rot=quaternion)
+
+        label_list.append(label)
+        pos_list.append(pos)
+        coords_list.append(c)
+
+
