@@ -5,8 +5,11 @@ from hanging_points_generator.generator_utils \
 texture = True
 urdf_dir = '/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2'
 
-paths = list(sorted(Path('./') .glob('*.json')))
+annotation_dir = '/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2/annotation_obj'  # noqa
+
+paths = list(sorted(Path(annotation_dir) .glob('*.json')))
 for path in paths:
+    print(path)
     pose = str(path)
     if texture:
         urdf = str(Path(urdf_dir) / path.stem / 'textured.urdf')

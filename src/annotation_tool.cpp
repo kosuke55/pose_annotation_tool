@@ -18,6 +18,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   HR_widget->setSizePolicy(spRight);
   H_layout->addWidget(HR_widget);
 
+
   QVBoxLayout *HRV_layout = new QVBoxLayout;
   QPushButton *add_marker_button = new QPushButton("add marker", this);
   QPushButton *remove_marker_button = new QPushButton("remove marker", this);
@@ -109,7 +110,7 @@ AnnotationTool::AnnotationTool(QWidget *parent)
   pre_marker_qz = 0;
   pre_marker_qw = 1;
   marker_mesh_resource = "package://annotation_tool/axis.stl";
-  marker_scale = 1;
+  marker_scale = 0.1;
 }
 
 // Destructor.
@@ -166,14 +167,16 @@ visualization_msgs::InteractiveMarkerControl &AnnotationTool::makeBoxControl(vis
 
 void AnnotationTool::make6DofMarker(std::string name, unsigned int interaction_mode, bool show_6dof)
 {
-  tf::Vector3 position = tf::Vector3(pre_marker_x, pre_marker_y, pre_marker_z);
   tf::Quaternion quaternion = tf::Quaternion(pre_marker_qx, pre_marker_qy, pre_marker_qz, pre_marker_qw);
+  tf::Matrix3x3 m(quaternion);
+  tf::Vector3 position = tf::Vector3(pre_marker_x,pre_marker_y, pre_marker_z) + m.getColumn(2) * 0.01;
+
   visualization_msgs::InteractiveMarker int_marker;
   int_marker.header.frame_id = "annotation";
   tf::pointTFToMsg(position, int_marker.pose.position);
   tf::quaternionTFToMsg(quaternion, int_marker.pose.orientation);
 
-  int_marker.scale = 0.05; //adjust this to adjust the control box's size
+  int_marker.scale = 0.005; //adjust this to adjust the control box's size
   int_marker.name = name;
   int_marker.description = name;
   makeBoxControl(int_marker);
@@ -269,7 +272,7 @@ void AnnotationTool::markerFeedback(const visualization_msgs::InteractiveMarkerF
 
   pre_marker_x = label[num][0];
   pre_marker_y = label[num][1];
-  pre_marker_z = label[num][2] + 0.01;
+  pre_marker_z = label[num][2];
   pre_marker_qx = label[num][4];
   pre_marker_qy = label[num][5];
   pre_marker_qz = label[num][6];
@@ -444,7 +447,7 @@ void AnnotationTool::loadAnnotation()
     tf::pointTFToMsg(position, int_marker.pose.position);
     tf::quaternionTFToMsg(quaternion, int_marker.pose.orientation);
 
-    int_marker.scale = 0.05; //adjust this to adjust the control box's size
+    int_marker.scale = 0.005; //adjust this to adjust the control box's size
     int_marker.name = std::to_string(num_marker) + "_" + std::to_string(pose_labels[i]);
     int_marker.description = std::to_string(num_marker) + "_" + std::to_string(pose_labels[i]);
     num_marker++;

@@ -22,7 +22,8 @@ def make_circle_coords(r, interval):
 
 
 path = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.txt'
-out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate_circle.txt'
+# out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate_circle.txt'
+out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.txt'
 urdf_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.urdf'
 tmp_file = 'tmp.json'
 
