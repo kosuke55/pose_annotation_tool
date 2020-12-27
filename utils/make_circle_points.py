@@ -1,8 +1,13 @@
+import argparse
+import os.path as osp
+from pathlib import Path
+
 from hanging_points_generator.generator_utils \
     import save_contact_points_as_annotation_format
 from hanging_points_generator.generator_utils import save_contact_points
 from hanging_points_generator.generator_utils import check_contact_points
 from hanging_points_generator.generator_utils import coords_to_dict
+from hanging_points_generator.generator_utils import make_average_coords_list
 from skrobot.coordinates import Coordinates
 
 
@@ -20,15 +25,33 @@ def make_circle_coords(r, interval):
 
     return coords_list
 
+parser = argparse.ArgumentParser(
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+parser.add_argument(
+    '--input', '-i',
+    type=str, help='input annotation file',
+    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.txt')
+parser.add_argument(
+    '--replace', '-r',
+    action='store_true', help='If true, repace annotation file')
+parser.add_argument(
+        '--radius',
+        type=float, help='radius of circle points',
+        default=0.1)
+parser.add_argument(
+        '--interval',
+        type=float, help='interval of points',
+        default=0.01)
+args = parser.parse_args()
 
-path = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.txt'
-# out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate_circle.txt'
-out_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.txt'
-urdf_file = '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj/029_plate.urdf'
-tmp_file = 'tmp.json'
-
-input_file = str(path)
-print(input_file)
+input_file = args.input
+urdf_file = str(Path(input_file).with_suffix('.urdf'))
+if args.replace:
+    output_file = input_file
+else:
+    output_file = osp.splitext(input_file)[0] + '_circle.txt'
+radius = args.radius
+interval = args.interval
 
 label_list = []
 pos_list = []
@@ -45,9 +68,15 @@ with open(input_file)as f:
         pos_list.append(pos)
         coords_list.append(c)
 
-base_coords = coords_list[0]
+print('coords_list', coords_list)
+dummy_labels = [0] * len(coords_list)
+base_coords = make_average_coords_list(
+    coords_list, dummy_labels, average_pos=True)[0]
+
+
 circle_coords_list = []
-dy_dz_list = make_circle_coords(0.08, 0.01)
+dy_dz_list = make_circle_coords(
+    r=radius, interval=interval)
 
 for dy, dz in dy_dz_list:
     _c = base_coords.copy_worldcoords().translate([0, dy, dz])
@@ -57,6 +86,7 @@ circle_coords_dict = coords_to_dict(
     circle_coords_list,
     urdf_file)
 
+tmp_file = 'tmp.json'
 save_contact_points(tmp_file, circle_coords_dict)
 check_contact_points(tmp_file, urdf_file)
-save_contact_points_as_annotation_format(circle_coords_dict, out_file)
+save_contact_points_as_annotation_format(circle_coords_dict, output_file)
