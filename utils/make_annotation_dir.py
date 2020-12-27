@@ -7,7 +7,7 @@ from pathlib import Path
 parser = argparse.ArgumentParser()
 parser.add_argument(
     '--input-dir', '-i', type=str,
-    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object/textured_urdf',  # noqa
+    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf',  # noqa
     help='input urdf directory')
 args = parser.parse_args()
 
