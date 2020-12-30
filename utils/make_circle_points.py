@@ -46,6 +46,13 @@ args = parser.parse_args()
 
 input_file = args.input
 urdf_file = str(Path(input_file).with_suffix('.urdf'))
+if osp.isfile(urdf_file):
+    object_file = urdf_file
+else:
+    object_file = str(Path(input_file).with_suffix('.pcd'))
+    if not osp.isfile(object_file):
+        raise ValueError('Neither urdf nor pcd can be found.')
+
 if args.replace:
     output_file = input_file
 else:
@@ -84,9 +91,9 @@ for dy, dz in dy_dz_list:
 
 circle_coords_dict = coords_to_dict(
     circle_coords_list,
-    urdf_file)
+    object_file)
 
 tmp_file = 'tmp.json'
 save_contact_points(tmp_file, circle_coords_dict)
-check_contact_points(tmp_file, urdf_file)
+check_contact_points(tmp_file, object_file)
 save_contact_points_as_annotation_format(circle_coords_dict, output_file)
