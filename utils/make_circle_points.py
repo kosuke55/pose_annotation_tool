@@ -1,4 +1,5 @@
 import argparse
+import os
 import os.path as osp
 from pathlib import Path
 
@@ -42,6 +43,10 @@ parser.add_argument(
         '--interval',
         type=float, help='interval of points',
         default=0.01)
+parser.add_argument(
+    '--gui', '-g',
+    action='store_true',
+    help='Visualize geenrated points')
 args = parser.parse_args()
 
 input_file = args.input
@@ -57,8 +62,10 @@ if args.replace:
     output_file = input_file
 else:
     output_file = osp.splitext(input_file)[0] + '_circle.txt'
+
 radius = args.radius
 interval = args.interval
+gui = args.gui
 
 label_list = []
 pos_list = []
@@ -93,7 +100,10 @@ circle_coords_dict = coords_to_dict(
     circle_coords_list,
     object_file)
 
-tmp_file = 'tmp.json'
-save_contact_points(tmp_file, circle_coords_dict)
-check_contact_points(tmp_file, object_file)
+if gui:
+    tmp_file = 'tmp.json'
+    save_contact_points(tmp_file, circle_coords_dict)
+    check_contact_points(tmp_file, object_file)
+    os.remove(tmp_file)
+
 save_contact_points_as_annotation_format(circle_coords_dict, output_file)
