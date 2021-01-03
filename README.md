@@ -43,3 +43,11 @@ ipython -i --  make_circle_points.py -i /home/kosuke55/catkin_ws/src/pose_annota
 ```
 Load generated annotation poses.  
 <img src="https://user-images.githubusercontent.com/39142679/103482333-a68ccf80-4e23-11eb-9968-c1ae67987f82.png" width="800">
+
+### [make_coords_json.py](utils/make_coords_json.py)
+A tool to convert from txt to json format for evaluation of
+[hanging_points_cnn](https://github.com/kosuke55/hanging_points_cnn/tree/master/hanging_points_cnn/evaluation) and
+[hanging_points_generator](https://github.com/kosuke55/hanging_points_generator/tree/master/evaluation).
+```
+python make_coords_json.py -i '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj'
+```
