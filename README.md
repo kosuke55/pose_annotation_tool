@@ -49,5 +49,5 @@ A tool to convert from txt to json format for evaluation of
 [hanging_points_cnn](https://github.com/kosuke55/hanging_points_cnn/tree/master/hanging_points_cnn/evaluation) and
 [hanging_points_generator](https://github.com/kosuke55/hanging_points_generator/tree/master/evaluation).
 ```
-python make_coords_json.py -i '/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj'
+python make_coords_json.py -i /media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj
 ```
