@@ -41,4 +41,5 @@ If there is no problem, overwrite the original annotation with the -r option.
 ```
 ipython -i --  make_circle_points.py -i /home/kosuke55/catkin_ws/src/pose_annotation_tool/real_ycb_annotation_pouring/029_plate_0.txt --radius 0.08 --interval 0.01 -r
 ```
+Load generated annotation poses.  
 <img src="https://user-images.githubusercontent.com/39142679/103482333-a68ccf80-4e23-11eb-9968-c1ae67987f82.png" width="600">
