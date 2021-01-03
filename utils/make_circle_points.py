@@ -16,13 +16,13 @@ def make_circle_coords(r, interval):
     # reference
     # https://stackoverflow.com/questions/39862709/generate-coordinates-in-grid-that-lie-within-a-circle/42375645  # noqa
     R = r / interval
-    X = int(R)  # R is the radius
+    X = int(R) + 1
     coords_list = []
     for x in range(-X, X + 1):
-        Y = int((R * R - x * x)**0.5)  # bound for y given x
+        Y = int(((R + 1) ** 2 - x ** 2)**0.5)  # bound for y given x
         for y in range(-Y, Y + 1):
-            coords_list.append([x * interval,
-                                y * interval])
+            if x ** 2 + y ** 2 < (R + 0.5) ** 2:
+                coords_list.append([x * interval, y * interval])
 
     return coords_list
 
@@ -82,7 +82,8 @@ with open(input_file)as f:
         pos_list.append(pos)
         coords_list.append(c)
 
-print('coords_list', coords_list)
+print('the number of exsiting points: ',
+      len(coords_list))
 dummy_labels = [0] * len(coords_list)
 base_coords = make_average_coords_list(
     coords_list, dummy_labels, average_pos=True)[0]
