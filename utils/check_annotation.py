@@ -23,15 +23,23 @@ parser.add_argument(
     default=1)
 parser.add_argument('--large-axis', '-la', action='store_true',
                     help='use large axis as visulaizing marker')
+parser.add_argument('--keyword', '-k', type=str,
+                    help='skip files that do not inculude this keyword. '
+                    'this option works when input is a directory. ',
+                    default=None)
 args = parser.parse_args()
 
 urdf_dir = args.input_urdf
 annotation_dir = args.input_annotation
 texture = args.texture
 large_axis = args.large_axis
+keyword = args.keyword
 
 paths = list(sorted(Path(annotation_dir) .glob('*.json')))
 for path in paths:
+    if keyword is not None:
+        if keyword not in str(path):
+            continue
     print(path)
     pose = str(path)
     if texture:
