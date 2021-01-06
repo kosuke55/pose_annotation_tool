@@ -10,20 +10,25 @@ parser = argparse.ArgumentParser(
 parser.add_argument(
     '--input-urdf', '-u', type=str,
     help='input urdf directory',
-    default='/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2')  # noqa
+    # default='/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2')  # noqa
+    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf')  # noqa
 parser.add_argument(
     '--input-annotation', '-a', type=str,
     help='input annotation directory',
-    default='/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2/annotation_obj')  # noqa
+    # default='/media/kosuke55/SANDISK/meshdata/ycb_hanging_object/urdf2/annotation_obj')  # noqa
+    default='/media/kosuke55/SANDISK/meshdata/ycb_pouring_object_16/textured_urdf/annotation_obj')  # noqa
 parser.add_argument(
     '--texture', type=int,
     help='if True, load texture.urdf',
     default=1)
+parser.add_argument('--large-axis', '-la', action='store_true',
+                    help='use large axis as visulaizing marker')
 args = parser.parse_args()
 
 urdf_dir = args.input_urdf
 annotation_dir = args.input_annotation
 texture = args.texture
+large_axis = args.large_axis
 
 paths = list(sorted(Path(annotation_dir) .glob('*.json')))
 for path in paths:
@@ -43,6 +48,7 @@ for path in paths:
             inf_penetration_check=False,
             align=False,
             average=False,
-            average_pos=False)
+            average_pos=False,
+            large_axis=large_axis)
     except KeyboardInterrupt:
         pass
